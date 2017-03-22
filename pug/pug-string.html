@@ -1,0 +1,104 @@
+<script type="text/javascript">
+    RED.nodes.registerType('pug-string',{
+        category: 'function',
+        color:"#a86454",
+        defaults: {
+            name:{value:""},
+            options:{value:[{key:"",value:"",value_type:"str"}]}
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "pug.png",
+        label: function() {
+            return this.name || "Pug String"
+        },
+        oneditprepare: function() {
+            function resizeConfig(config) {
+                var newWidth = config.width();
+                config.find('.red-ui-typedInput').typedInput("width",newWidth-150);
+
+            }
+            $('#node-input-options-container').css('min-height','300px').css('min-width','450px').editableList({
+                addItem: function(container,i,property) {
+                    if (!property.hasOwnProperty('key')) {
+                        property = {key:"",value:"",value_type:"str"};
+                    }
+                    var row1 = $('<div/>').appendTo(container);
+                    var row2 = $('<div/>',{style:"margin-top:8px;"}).appendTo(container);
+
+                    $('<label/>',{for:"node-input-options-property-name",style:"width:110px; margin-right:10px;"}).text("Key").appendTo(row1);
+
+                    var propertyName = $('<input/>',{style:"width:250px",class:"node-input-options-property-name",type:"text", value:property.key})
+                        .appendTo(row1)
+
+                    $('<label/>',{for:"node-input-options-property-value",style:"width:110px; margin-right:10px;"}).text("Value").appendTo(row2);
+                    var propertyValue = $('<input/>',{style:"width:250px",class:"node-input-options-property-value",type:"text"})
+                        .appendTo(row2)
+                        .typedInput({types:['str','num','bool','json','date', 'msg']});
+
+                    propertyValue.typedInput('value',property.value);
+                    propertyValue.typedInput('type',property.value_type);
+
+                    var newWidth = $("#node-input-options-container").width();
+                    resizeConfig(container);
+                },
+                resizeItem: resizeConfig,
+                removable: true,
+                sortable: false
+            });
+
+            for (var i=0;i<this.options.length;i++) {
+                var property = this.options[i];
+                $("#node-input-options-container").editableList('addItem',property);
+            }
+        },
+        oneditsave: function() {
+            var options = $("#node-input-options-container").editableList('items');
+            var node = this;
+            node.options= [];
+            options.each(function(i) {
+                var property = $(this);
+                var p = {
+                    key:property.find(".node-input-options-property-name").val(),
+                    value:property.find(".node-input-options-property-value").typedInput('value'),
+                    value_type:property.find(".node-input-options-property-value").typedInput('type')
+                };
+                node.options.push(p);
+            });
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-input-options-container-row)");
+            var height = size.height;
+            for (var i=0;i<rows.size();i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-input-options-container-row");
+            height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+
+            $("#node-input-options-container").editableList('height',height);
+        }
+    })
+</script>
+
+<script type="text/x-red" data-template-name="pug-string">
+    <div class="form-row">
+      <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+     <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row" style="margin-bottom:0;">
+        <label><i class="fa fa-list"></i> Options</span></label>
+    </div>
+    <div class="form-row node-input-options-container-row">
+        <ol id="node-input-options-container"></ol>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="pug-string">
+   <p>Node that renders a pug string in <code>message.payload</code> into html.</p>
+   <p>
+    In <code>message.options</code> or the form you may submit an object with your data to be parsed into the pug-template. Both Objects will be merged with the <code>message.options</code>-Object winning in conflicts.
+   </p>
+   <p>
+   The rendered HTML is server in <code>message.payload</code> and <code>message.html</code>.
+   </p>
+</script>
