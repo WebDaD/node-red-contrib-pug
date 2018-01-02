@@ -40,7 +40,7 @@ module.exports = function (RED) {
       // Options
       var options = {}
       node.options.forEach(function (option) {
-        var value = RED.util.evaluateNodeProperty(option.value, option.value_type, node, null)
+        var value = RED.util.evaluateNodeProperty(option.value, option.value_type, node, msg)
         options[option.key] = value
       })
       for (var option in msg.options) {
